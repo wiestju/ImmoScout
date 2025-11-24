@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="immoscout",
-    version="0.1.0",
+    version="0.1.1",
     description="A Python API wrapper for ImmobilienScout24",
     long_description=long_description,
     long_description_content_type="text/markdown",
