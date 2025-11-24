@@ -1,7 +1,7 @@
 # Immoscout API Wrapper
 
 [![PyPI version](https://badge.fury.io/py/immoscout.svg)](https://badge.fury.io/py/immoscout)
-[![Tests](https://github.com/yourusername/immoscout/actions/workflows/tests.yml/badge.svg)](https://github.com/yourusername/immoscout/actions/workflows/tests.yml)
+[![Tests](https://github.com/wiestju/immoscout/actions/workflows/tests.yml/badge.svg)](https://github.com/wiestju/immoscout/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A robust, unofficial Python API wrapper for ImmobilienScout24. This library allows you to easily search for real estate listings and retrieve detailed expose information programmatically.
