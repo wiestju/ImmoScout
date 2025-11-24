@@ -4,7 +4,7 @@ setup(
     name="immoscout",
     version="0.1.0",
     description="A Python API wrapper for ImmobilienScout24",
-    author="Julian",
+    author="wiestju",
     packages=find_packages(),
     install_requires=[
         "requests>=2.25.0",
