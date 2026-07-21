@@ -1,0 +1,73 @@
+# immoscout
+
+> Typed, unofficial Python client for ImmobilienScout24 (immobilienscout24.de). Search real-estate listings, fetch expose details, and expose it all to AI agents via a built-in Model Context Protocol (MCP) server. `pip install immoscout`.
+
+`immoscout` wraps ImmobilienScout24's mobile API and returns clean, typed Pydantic
+objects instead of raw JSON. Because it uses the mobile API endpoints, it needs no
+headless browser, no HTML scraping, and no captcha solving — the website shows captchas
+to scripted browsers, the mobile endpoints just return JSON. It is designed to be both a normal Python library and
+an agent-native tool: it ships an MCP server so assistants like Claude can search
+real estate natively. Unofficial and not affiliated with ImmobilienScout24; for
+personal/educational use, respecting their Terms of Service.
+
+## Install
+
+- `pip install immoscout` — library + CLI
+- `pip install "immoscout[mcp]"` — also installs the MCP server
+
+## Core usage
+
+```python
+from immoscout import ImmoscoutClient, SearchFilter
+
+client = ImmoscoutClient()
+
+# Search with typed filters -> SearchResult of typed Listing objects
+result = client.search(region="/de/berlin/berlin", price_max=1200, rooms_min=2)
+for listing in result.listings:
+    print(listing.title, listing.price, listing.rooms, listing.living_space, listing.url)
+
+# Auto-paginate across all pages (one request per page)
+for listing in client.search_all(SearchFilter(region="/de/bayern/muenchen", price_max=1500), max_pages=3):
+    ...
+
+# Full details for one listing
+expose = client.get_expose(result.listings[0].id)
+print(expose.price, expose.address, expose.description)
+```
+
+Every model keeps the untouched API payload on `.raw`.
+
+## Key objects
+
+- `ImmoscoutClient(user_agent=..., timeout=15, max_retries=3, backoff=0.5)` — sync client with timeouts, retries/backoff, and rate-limit handling.
+  - `.search(filter_or_kwargs) -> SearchResult`
+  - `.count(filter_or_kwargs) -> int` — total matches only, no listings fetched.
+  - `.search_all(filter, max_pages=None) -> Iterator[Listing]`
+  - `.get_expose(expose_id) -> Expose`
+  - `.suggest_regions(query, limit=10) -> list[GeoLocation]` — resolve a place name (e.g. "münchen") to region paths ("/de/bayern/muenchen").
+- `region` accepts a geocode path OR a plain place name; plain names are auto-resolved via suggest_regions before searching/counting.
+- Full documentation site: https://wiestju.github.io/ImmoScout/
+- `SearchFilter(region, real_estate_type, price_min, price_max, rooms_min, rooms_max, living_space_min, living_space_max, page, extra)` — validated query; `.to_params()` compiles to API params.
+- `RealEstateType` — enum: apartmentrent, apartmentbuy, houserent, housebuy, flatshareroom, garagerent, garagebuy.
+- `Listing` — id, title, url, address(line/lat/lon), price, currency, living_space, rooms, real_estate_type, published, is_private, is_new, picture_url, raw.
+- `Expose` — id, title, address, price, rooms, living_space, attributes(dict), description, url, raw.
+- Exceptions: `ImmoscoutError` (base), `RequestError`, `NotFoundError`, `RateLimitError`.
+
+## CLI
+
+- `immoscout regions <query>` — look up region geocode paths by name
+- `immoscout search --region Berlin --price-max 1200 --rooms-min 2 [--json]`
+- `immoscout count --region Berlin --price-max 1000` — number of matches only
+- `immoscout expose <expose_id>`
+
+## MCP server (AI agents)
+
+- Run `immoscout-mcp` (needs the `[mcp]` extra), or configure it as an MCP server (command `immoscout-mcp`) in Claude Desktop / Claude Code / Cursor.
+- Tools: `search_listings(...)`, `count_listings(...)`, `get_expose(expose_id)`, and `suggest_regions(query)`.
+
+## Notes
+
+- Regions are ImmoScout geocode paths, e.g. `/de/berlin/berlin`, `/de/bayern/muenchen`.
+- Range filters use `min-max` semantics; open-ended ranges like `50.0-` (min only) are supported.
+- Be gentle with request volume; ImmobilienScout24 rate-limits and blocks aggressive traffic.

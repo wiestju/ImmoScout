@@ -1,130 +1,166 @@
-# Immoscout API Wrapper
+# 🏠 immoscout
 
-[![PyPI version](https://badge.fury.io/py/immoscout.svg)](https://badge.fury.io/py/immoscout)
-[![Tests](https://github.com/wiestju/immoscout/actions/workflows/tests.yml/badge.svg)](https://github.com/wiestju/immoscout/actions/workflows/tests.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI](https://img.shields.io/pypi/v/immoscout?style=flat-square)](https://pypi.org/project/immoscout/)
+[![CI](https://github.com/wiestju/ImmoScout/actions/workflows/ci.yml/badge.svg)](https://github.com/wiestju/ImmoScout/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/pypi/pyversions/immoscout?style=flat-square)](https://pypi.org/project/immoscout/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-A robust, unofficial Python API wrapper for ImmobilienScout24. This library allows you to easily search for real estate listings and retrieve detailed expose information programmatically.
+**A typed, unofficial Python client for [ImmobilienScout24](https://www.immobilienscout24.de)** —
+search real-estate listings, fetch expose details, and plug it all into AI agents.
 
-## Features
+Instead of a raw JSON blob, you get clean typed objects (`Listing`, `Expose`) — and a
+built-in **[MCP](https://modelcontextprotocol.io) server** so assistants like Claude can
+search real estate for you natively.
 
-- 🔍 **Advanced Search**: Filter by region, price type, real estate type, and more.
-- 📄 **Detailed Exposes**: Fetch full details for any listing ID.
-- 🚀 **Performance**: Built on `requests.Session` for connection pooling and faster requests.
-- 🛡️ **Error Handling**: Custom exceptions for clean error management.
-- 📦 **Type Hinted**: Fully typed for excellent IDE support and autocompletion.
+📖 **[Documentation](https://wiestju.github.io/ImmoScout/)** · `pip install immoscout`
 
-## Installation
+> ⚠️ Unofficial and not affiliated with ImmobilienScout24. For personal use, and gentle
+> with request volume — see the [DISCLAIMER](DISCLAIMER.md).
 
-Install the package via pip:
+## ✨ Features
 
-```bash
-pip install immoscout
-```
+- 🚫 **No captchas to solve** — talks to ImmobilienScout24's **mobile API**, which returns
+  clean JSON directly. No headless browser, no captcha-solving, no HTML scraping — where the
+  website makes even human users pass captchas, the mobile endpoints just answer.
+- 🔍 **Typed results** — `search()` returns `SearchResult` with parsed `Listing` objects
+  (price, rooms, m², address, URL) — not a nested dict you have to reverse-engineer.
+- 🎯 **Validated filters** — `SearchFilter` with price/rooms/space ranges and real-estate types.
+- 🗺️ **Place names, not codes** — `region="München"` is auto-resolved to the right geocode path.
+- 📄 **Auto-pagination & counts** — `search_all()` walks every page; `count()` returns totals only.
+- 🛡️ **Robust HTTP** — request timeouts, retries with backoff, and explicit rate-limit errors.
+- 🤖 **Agent-native** — an MCP server (`immoscout-mcp`) exposes search as tools for Claude & co.
+- ⌨️ **CLI** — `immoscout search …` and `immoscout expose …`.
+- 🧩 **Nothing hidden** — every object keeps the untouched API payload on `.raw`.
 
-## Quick Start
-
-Here's how to get started in just a few lines of code:
+## 🚀 Quick Start
 
 ```python
 from immoscout import ImmoscoutClient
-from immoscout.exceptions import ImmoscoutError
 
-# Initialize the client
 client = ImmoscoutClient()
 
-try:
-    # 1. Search for apartments in Berlin
-    print("Searching for apartments...")
-    results = client.search(
-        region='/de/berlin/berlin',
-        price_type='calculatedtotalrent',
-        real_estate_type='apartmentrent'
-    )
-    
-    print(f"Found {results.get('totalResults', 0)} results.")
+result = client.search(region="Berlin", price_max=1200, rooms_min=2)  # place name auto-resolved
+print(f"{result.total_results} results")
 
-    # 2. Get details for a specific listing (Expose)
-    # Replace with a valid ID from your search results
-    expose_id = '123456789' 
-    expose = client.get_expose(expose_id)
-    
-    print(f"Expose Title: {expose.get('expose', {}).get('title')}")
-
-except ImmoscoutError as e:
-    print(f"An error occurred: {e}")
+for listing in result.listings[:5]:
+    print(listing.title)
+    print(f"  {listing.price:.0f} {listing.currency} · {listing.rooms:g} rooms · {listing.living_space:g} m²")
+    print(f"  {listing.address.line}")
+    print(f"  {listing.url}")
 ```
 
-## Advanced Usage
+### Finding a region
 
-### Customizing the Client
-
-You can customize the `User-Agent` if needed:
+You can pass a **place name** directly (`region="München"`) and it's resolved for you. To
+see the options, or to store the exact path, look them up:
 
 ```python
-client = ImmoscoutClient(user_agent='MyCustomBot/1.0')
+client.suggest_regions("münchen")[0].region   # -> "/de/bayern/muenchen"
 ```
-
-### Pagination
-
-The search method supports pagination:
-
-```python
-# Get page 2
-results_page_2 = client.search(
-    region='/de/berlin/berlin',
-    page_number=2
-)
-```
-
-### Custom Search Parameters
-
-You can pass any additional parameters supported by the Immoscout API as keyword arguments:
-
-```python
-results = client.search(
-    region='/de/berlin/berlin',
-    price_from=500,
-    price_to=1000,
-    rooms_from=2
-)
-```
-
-## Development
-
-### Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/immoscout.git
-   cd immoscout
-   ```
-
-2. Install dependencies:
-   ```bash
-   pip install -e .
-   ```
-
-### Running Tests
 
 ```bash
-pytest
+immoscout regions münchen
+# /de/bayern/muenchen          city       München
+# /de/bayern/muenchen-kreis    district   München (Kreis)
 ```
 
-## Contributing
+## 🎯 Filters & pagination
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```python
+from immoscout import ImmoscoutClient, RealEstateType, SearchFilter
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+client = ImmoscoutClient()
 
-## License
+query = SearchFilter(
+    region="/de/bayern/muenchen",
+    real_estate_type=RealEstateType.APARTMENT_RENT,
+    price_max=1500,
+    rooms_min=2,
+    living_space_min=50,
+)
 
-Distributed under the MIT License. See `LICENSE` for more information.
+# Walk every result page (one request per page) — cap it to stay gentle:
+for listing in client.search_all(query, max_pages=3):
+    print(listing.price, listing.title)
+```
 
-## Disclaimer
+## 📄 Expose details
 
-This is an unofficial wrapper and is not affiliated with, endorsed by, or connected to ImmobilienScout24. Use responsibly and in accordance with their Terms of Service.
+```python
+expose = client.get_expose("169446368")
+print(expose.title, expose.price, expose.rooms, expose.living_space)
+print(expose.address)
+print(expose.description)
+print(expose.attributes)   # {"Wohnungstyp": "Etagenwohnung", "Etage": "2 von 4", ...}
+```
+
+## ⌨️ CLI
+
+```bash
+immoscout regions münchen                                   # find a region path
+immoscout search --region /de/berlin/berlin --price-max 1200 --rooms-min 2
+immoscout search --region /de/berlin/berlin --json          # machine-readable
+immoscout expose 169446368
+```
+
+## 🤖 Use it from AI agents (MCP)
+
+`immoscout` ships a [Model Context Protocol](https://modelcontextprotocol.io) server, so
+any MCP client (Claude Desktop, Claude Code, Cursor, …) can search real estate natively.
+
+```bash
+pip install "immoscout[mcp]"
+immoscout-mcp        # runs the server (stdio)
+```
+
+Register it in your MCP client — e.g. Claude Desktop's `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "immoscout": { "command": "immoscout-mcp" }
+  }
+}
+```
+
+The agent then has these tools:
+
+- **`search_listings`** — region, real-estate type, price/rooms/space bounds, max results.
+- **`count_listings`** — how many match, without fetching them.
+- **`get_expose`** — full details for a listing ID.
+- **`suggest_regions`** — resolve a place name to region paths (so the agent can search any city).
+
+Now you can ask *"find me 2-room apartments in Berlin under 1200 € and summarize the three
+cheapest"* and the agent does the lookup itself.
+
+## 🧱 API overview
+
+| Object | What it is |
+| --- | --- |
+| `ImmoscoutClient(timeout, max_retries, backoff)` | HTTP client — `search()`, `search_all()`, `count()`, `get_expose()`, `suggest_regions()` |
+| `SearchFilter(...)` | Validated query; `.to_params()` compiles to API params |
+| `RealEstateType` | Enum: apartment/house rent & buy, flat-share room, garage |
+| `SearchResult` | `total_results`, `number_of_pages`, `listings`, `raw` |
+| `Listing` | Parsed result: price, rooms, `living_space`, `address`, `url`, `raw` |
+| `Expose` | Detail view: price, `attributes`, `description`, `raw` |
+| `ImmoscoutError` | Base; `RequestError`, `NotFoundError`, `RateLimitError` |
+
+## 🛠️ Development
+
+```bash
+pip install -e ".[dev]"
+ruff check .
+pytest              # unit tests are fully mocked — no network needed
+```
+
+CI runs ruff + pytest across Python 3.10–3.13.
+
+## ⚖️ Responsible use
+
+ImmobilienScout24 actively rate-limits and blocks automated traffic. Keep the built-in
+timeouts/retries, add delays, and don't scrape at scale. This project is for personal and
+educational use — see the [DISCLAIMER](DISCLAIMER.md).
+
+## 📄 License
+
+[MIT](LICENSE)

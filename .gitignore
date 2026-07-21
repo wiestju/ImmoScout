@@ -29,3 +29,6 @@ ENV/
 .idea/
 .vscode/
 *.swp
+
+# MkDocs build output
+site/

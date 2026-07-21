@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "immoscout"
+version = "0.2.0"
+description = "Typed, unofficial Python client for ImmobilienScout24 — search listings, fetch exposes, and plug real estate data into AI agents (MCP)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "wiestju" }]
+keywords = ["immobilienscout24", "immoscout", "real-estate", "api", "wrapper", "mcp", "agents", "germany"]
+dependencies = [
+    "requests>=2.28",
+    "pydantic>=2.0",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2"]
+dev = ["pytest>=8.0", "ruff>=0.6", "responses>=0.25"]
+docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
+
+[project.scripts]
+immoscout = "immoscout.cli:main"
+immoscout-mcp = "immoscout.mcp_server:main"
+
+[project.urls]
+Homepage = "https://github.com/wiestju/ImmoScout"
+Source = "https://github.com/wiestju/ImmoScout"
+Issues = "https://github.com/wiestju/ImmoScout/issues"
+
+[tool.setuptools]
+packages = ["immoscout"]
+
+[tool.setuptools.package-data]
+immoscout = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]

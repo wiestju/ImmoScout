@@ -1,44 +1,49 @@
-# Contributing to ImmoScout
+# Contributing to immoscout
 
-Thank you for your interest in contributing to ImmoScout! We welcome contributions from everyone.
+Thanks for your interest in contributing! Bug reports, docs, new filters, and new
+endpoints are all welcome.
 
-## How to Contribute
+## How to contribute
 
-1.  **Fork the repository** on GitHub.
-2.  **Clone your fork** locally:
-    ```bash
-    git clone https://github.com/wiestju/immoscout.git
-    cd immoscout
-    ```
-3.  **Create a new branch** for your feature or bugfix:
-    ```bash
-    git checkout -b feature/my-new-feature
-    ```
-4.  **Make your changes** and commit them with clear messages.
-5.  **Push your changes** to your fork:
-    ```bash
-    git push origin feature/my-new-feature
-    ```
-6.  **Open a Pull Request** on the main repository.
+1. **Fork** the repository on GitHub.
+2. **Clone** your fork: `git clone https://github.com/wiestju/ImmoScout.git`
+3. **Create a branch:** `git checkout -b feature/my-change`
+4. Make your changes with clear commit messages.
+5. **Push** and **open a Pull Request**.
 
-## Development Setup
+## Development setup
 
-1.  Install dependencies:
-    ```bash
-    pip install -e .
-    pip install pytest
-    ```
+```bash
+python -m venv venv && source venv/bin/activate
+pip install -e ".[dev]"     # runtime + dev deps (pytest, ruff, responses)
+```
 
-2.  Run tests:
-    ```bash
-    pytest
-    ```
+## Before opening a PR
 
-## Code Style
+```bash
+ruff check .     # lint (ruff check --fix . to auto-fix)
+pytest           # unit tests are fully mocked — no network needed
+```
 
-- Please follow PEP 8 guidelines.
-- Ensure your code is well-documented.
+Both run in CI on every push/PR across Python 3.10–3.13. Please keep them green and
+add tests for new logic.
 
-## Reporting Issues
+## Building the docs
 
-If you find a bug or have a feature request, please open an issue on GitHub. Provide as much detail as possible.
+```bash
+pip install -e ".[docs]"
+mkdocs serve     # live preview at http://127.0.0.1:8000
+```
+
+## Guidelines
+
+- Ruff enforces style and imports (config in `pyproject.toml`); type-hint public APIs.
+- Keep it **calm and respectful** of ImmobilienScout24 — timeouts, modest retries, no
+  aggressive scraping. PRs that add mass-scraping or rate-limit evasion won't be merged.
+  See [DISCLAIMER.md](DISCLAIMER.md).
+- Never commit credentials, tokens, or personal data.
+
+## Reporting issues
+
+Open an issue with steps to reproduce, your Python version, and relevant output
+(with any personal data redacted).

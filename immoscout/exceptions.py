@@ -1,11 +1,21 @@
+"""Exception hierarchy for the ImmoScout client."""
+
+
 class ImmoscoutError(Exception):
-    """Base exception for Immoscout API errors."""
-    pass
+    """Base exception for all ImmoScout errors."""
+
 
 class RequestError(ImmoscoutError):
-    """Raised when an HTTP request fails."""
-    pass
+    """An HTTP request failed (network error or non-2xx response)."""
 
-class NotFoundError(ImmoscoutError):
-    """Raised when a resource is not found (404)."""
-    pass
+
+class NotFoundError(RequestError):
+    """A resource was not found (HTTP 404)."""
+
+
+class RateLimitError(RequestError):
+    """The API is rate limiting or blocking the client (HTTP 429 / 403).
+
+    ImmobilienScout24 actively throttles automated access — back off and slow
+    down rather than retrying aggressively.
+    """
