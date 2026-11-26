@@ -92,6 +92,7 @@ print(expose.title, expose.price, expose.rooms, expose.living_space)
 print(expose.address)
 print(expose.description)
 print(expose.attributes)   # {"Wohnungstyp": "Etagenwohnung", "Etage": "2 von 4", ...}
+print(expose.images)       # ["https://pictures.immobilienscout24.de/listings/...jpg/ORIG/...", ...]
 ```
 
 ## ⌨️ CLI
@@ -142,7 +143,7 @@ cheapest"* and the agent does the lookup itself.
 | `RealEstateType` | Enum: apartment/house rent & buy, flat-share room, garage |
 | `SearchResult` | `total_results`, `number_of_pages`, `listings`, `raw` |
 | `Listing` | Parsed result: price, rooms, `living_space`, `address`, `url`, `raw` |
-| `Expose` | Detail view: price, `attributes`, `description`, `raw` |
+| `Expose` | Detail view: price, `attributes`, `description`, `images`, `raw` |
 | `ImmoscoutError` | Base; `RequestError`, `NotFoundError`, `RateLimitError` |
 
 ## 🛠️ Development

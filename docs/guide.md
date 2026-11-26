@@ -77,6 +77,7 @@ expose = client.get_expose("169446368")
 print(expose.title, expose.price, expose.rooms, expose.living_space)
 print(expose.address)
 print(expose.attributes)   # {"Wohnungstyp": "Etagenwohnung", "Etage": "2 von 4", ...}
+print(expose.images)       # ["https://pictures.immobilienscout24.de/listings/...jpg/ORIG/...", ...]
 print(expose.description)
 ```
 

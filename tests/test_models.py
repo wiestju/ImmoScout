@@ -100,3 +100,28 @@ class TestExpose:
         assert expose.description == "Schönes Zimmer."
         assert expose.address == "Roedernallee 118H 13437 Berlin"
         assert expose.attributes["Kaltmiete"] == "1.380 €"
+
+
+def test_expose_collects_picture_urls_only():
+    data = {
+        "header": {"id": "1"},
+        "sections": [
+            {
+                "type": "MEDIA",
+                "media": [
+                    {"type": "PICTURE", "fullImageUrl": "https://pictures.example/a.jpg"},
+                    {"type": "AD"},
+                    {"type": "VIRTUAL_TOUR", "previewImageUrl": "https://pictures.example/tour.jpg"},
+                    {"type": "PICTURE", "imageUrlForWeb": "https://pictures.example/b.jpg"},
+                ],
+            }
+        ],
+    }
+    assert Expose.from_api(data).images == [
+        "https://pictures.example/a.jpg",
+        "https://pictures.example/b.jpg",
+    ]
+
+
+def test_expose_without_media_has_no_images():
+    assert Expose.from_api(EXPOSE_RESPONSE).images == []
