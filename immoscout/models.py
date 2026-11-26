@@ -176,6 +176,7 @@ class Expose(BaseModel):
     rooms: float | None = None
     attributes: dict[str, str] = Field(default_factory=dict)
     description: str | None = None
+    images: list[str] = Field(default_factory=list)
     url: str | None = None
     raw: dict = Field(default_factory=dict, repr=False)
 
@@ -186,6 +187,7 @@ class Expose(BaseModel):
         attributes: dict[str, str] = {}
         description_parts: list[str] = []
         address: str | None = None
+        images: list[str] = []
 
         for section in sections:
             stype = section.get("type")
@@ -199,6 +201,14 @@ class Expose(BaseModel):
                 text = section.get("text")
                 if text:
                     description_parts.append(text.strip())
+            elif stype == "MEDIA":
+                for item in section.get("media") or []:
+                    if item.get("type") != "PICTURE":
+                        continue
+                    img = (item.get("fullImageUrl") or item.get("imageUrlForWeb")
+                           or item.get("previewImageUrl"))
+                    if img:
+                        images.append(img)
             elif stype == "MAP" and address is None:
                 address = " ".join(
                     p for p in (section.get("addressLine1"), section.get("addressLine2")) if p
@@ -222,6 +232,7 @@ class Expose(BaseModel):
             rooms=parse_german_number(pick("zimmer")),
             attributes=attributes,
             description="\n\n".join(description_parts) or None,
+            images=images,
             url=_EXPOSE_URL.format(id=eid) if eid else None,
             raw=data,
         )
